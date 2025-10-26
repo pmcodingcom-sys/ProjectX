@@ -1,0 +1,2931 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานผลการเรียน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .print-only {
+            display: none;
+        }
+        
+        /* Mobile-first responsive design */
+        @media (max-width: 768px) {
+            /* Mobile typography */
+            .mobile-title {
+                font-size: 1.5rem !important;
+                line-height: 1.3 !important;
+            }
+            
+            .mobile-subtitle {
+                font-size: 0.9rem !important;
+            }
+            
+            .mobile-text {
+                font-size: 0.85rem !important;
+            }
+            
+            .mobile-button {
+                font-size: 0.9rem !important;
+                padding: 0.75rem 1rem !important;
+            }
+            
+            /* Mobile spacing */
+            .mobile-container {
+                padding: 0.75rem !important;
+            }
+            
+            .mobile-card {
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            /* Mobile table */
+            .mobile-table {
+                font-size: 0.75rem !important;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 0.5rem 0.25rem !important;
+                white-space: nowrap;
+            }
+            
+            /* Mobile form */
+            .mobile-input {
+                font-size: 1rem !important;
+                padding: 0.75rem !important;
+            }
+            
+            /* Mobile grid adjustments */
+            .mobile-grid-1 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .mobile-grid-2 {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+            }
+            
+            /* Mobile stats cards */
+            .mobile-stats {
+                padding: 1rem !important;
+                text-align: center;
+            }
+            
+            .mobile-stats p:first-child {
+                font-size: 0.75rem !important;
+            }
+            
+            .mobile-stats p:last-child {
+                font-size: 1.5rem !important;
+            }
+            
+            /* Mobile navigation */
+            .mobile-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid #e5e7eb;
+                padding: 0.5rem;
+                z-index: 50;
+            }
+            
+            /* Mobile search */
+            .mobile-search-container {
+                position: sticky;
+                top: 0;
+                background: white;
+                z-index: 40;
+                padding: 1rem;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            /* Hide elements on mobile */
+            .hide-mobile {
+                display: none !important;
+            }
+            
+            /* Show only on mobile */
+            .show-mobile {
+                display: block !important;
+            }
+            
+            /* Mobile-optimized table scroll */
+            .mobile-table-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+            
+            .mobile-table-scroll::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            .mobile-table-scroll::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+            
+            .mobile-table-scroll::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 2px;
+            }
+        }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+            .card-shadow { box-shadow: none !important; }
+            
+            /* Optimize table for print */
+            table { 
+                font-size: 12px !important; 
+                width: 100% !important;
+            }
+            th, td { 
+                padding: 4px 6px !important; 
+                line-height: 1.2 !important;
+            }
+            th {
+                font-size: 10px !important;
+                font-weight: 600 !important;
+            }
+            
+            /* Ensure table fits on one page */
+            .overflow-x-auto {
+                overflow: visible !important;
+            }
+            
+            /* Compact spacing for print */
+            .p-6 { padding: 1rem !important; }
+            .mb-8 { margin-bottom: 1rem !important; }
+            .mb-6 { margin-bottom: 0.75rem !important; }
+            .pt-6 { padding-top: 0.75rem !important; }
+            .pb-6 { padding-bottom: 0.75rem !important; }
+            
+            /* Page break control */
+            .print-table-container {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .grade-A { background: linear-gradient(45deg, #10b981, #34d399); }
+        .grade-B { background: linear-gradient(45deg, #3b82f6, #60a5fa); }
+        .grade-C { background: linear-gradient(45deg, #f59e0b, #fbbf24); }
+        .grade-D { background: linear-gradient(45deg, #ef4444, #f87171); }
+        .grade-F { background: linear-gradient(45deg, #6b7280, #9ca3af); }
+        
+        /* Loader Styles */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .loader-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .loader-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+            margin: 0 4px;
+            animation: dotPulse 1.4s ease-in-out infinite both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem auto;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 3px;
+            animation: progressMove 2s ease-in-out infinite;
+        }
+        
+        .pulse-loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            margin: 0 auto 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes dotPulse {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes progressMove {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-full bg-gray-50">
+    <!-- Header -->
+    <header id="mainHeader" class="gradient-bg text-white py-4 md:py-8 no-print relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="container mx-auto px-3 md:px-4 relative z-10">
+            <div class="text-center mb-4 md:mb-6">
+                <h1 class="text-2xl md:text-4xl mobile-title font-bold mb-2">ระบบรายงานผลการเรียน</h1>
+                <p class="text-sm md:text-xl mobile-subtitle opacity-90 mb-3 md:mb-4">Academic Report System</p>
+                <button onclick="showSection('admin')" class="bg-white bg-opacity-20 backdrop-blur-sm text-white px-4 py-2 md:px-6 md:py-3 mobile-button rounded-full font-medium hover:bg-opacity-30 transition-all duration-300 flex items-center space-x-2 border border-white border-opacity-30 mx-auto text-sm md:text-base">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>ผู้ดูแลระบบ</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Landing Section -->
+    <div id="landingSection" class="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <!-- Hero Section -->
+        <div class="container mx-auto px-3 md:px-4 py-6 md:py-16 mobile-container">
+            <div class="max-w-6xl mx-auto">
+                <!-- Welcome Section -->
+                <div class="text-center mb-8 md:mb-16">
+                    <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-4 md:mb-6">
+                        <svg class="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl md:text-4xl mobile-title font-bold text-gray-800 mb-3 md:mb-4 px-2">ยินดีต้อนรับสู่ระบบรายงานผลการเรียน</h2>
+                    <p class="text-sm md:text-xl mobile-text text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
+                        ระบบจัดการและค้นหาผลการเรียนออนไลน์ที่ทันสมัย ใช้งานง่าย และปลอดภัย 
+                        สำหรับนักเรียน ครู และผู้ปกครอง
+                    </p>
+                </div>
+
+                <!-- Search Section -->
+                <div class="max-w-2xl mx-auto mb-8 md:mb-16">
+                    <div class="bg-white rounded-2xl md:rounded-3xl card-shadow p-4 md:p-8 mobile-card border border-gray-100">
+                        <div class="text-center mb-6 md:mb-8">
+                            <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-2 md:space-y-0">
+                                <div class="hidden md:block"></div>
+                                <div class="text-center">
+                                    <h3 class="text-lg md:text-2xl font-bold text-gray-800 mb-2">ค้นหาผลการเรียน</h3>
+                                    <p class="text-sm md:text-base mobile-text text-gray-600">กรอกรหัสประจำตัวนักเรียนเพื่อดูผลการเรียน</p>
+                                </div>
+                                <button onclick="showSection('admin')" class="text-gray-500 hover:text-gray-700 text-xs md:text-sm underline transition-colors hide-mobile">
+                                    ผู้ดูแลระบบ →
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <form onsubmit="searchStudentInitial(event)" class="space-y-4 md:space-y-6">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 md:h-6 md:w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <input type="text" id="studentIdSearch" placeholder="กรอกรหัสประจำตัวนักเรียน เช่น 65001" 
+                                       class="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-3 md:py-4 text-base md:text-lg mobile-input border-2 border-gray-200 rounded-xl md:rounded-2xl focus:ring-4 focus:ring-blue-500 focus:ring-opacity-20 focus:border-blue-500 transition-all duration-300">
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 md:py-4 mobile-button rounded-xl md:rounded-2xl font-semibold text-base md:text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                🔍 ค้นหาผลการเรียน
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-16 mobile-grid-1 md:mobile-grid-2">
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 mobile-card card-shadow text-center border border-gray-100 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-6">
+                            <svg class="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3">ค้นหาง่าย รวดเร็ว</h4>
+                        <p class="text-sm md:text-base mobile-text text-gray-600">ค้นหาผลการเรียนได้ทันทีด้วยรหัสประจำตัว ระบบตอบสนองเร็วและแม่นยำ</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 mobile-card card-shadow text-center border border-gray-100 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-6">
+                            <svg class="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3">รายงานครบถ้วน</h4>
+                        <p class="text-sm md:text-base mobile-text text-gray-600">ดูผลการเรียนแบบละเอียด พร้อมเกรดเฉลี่ย และสถานะการเรียน</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 mobile-card card-shadow text-center border border-gray-100 hover:shadow-xl transition-all duration-300">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-6">
+                            <svg class="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H3a2 2 0 00-2 2v4a2 2 0 002 2h2.5a2 2 0 012 2v2a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3">พิมพ์ได้ทันที</h4>
+                        <p class="text-sm md:text-base mobile-text text-gray-600">พิมพ์ใบรายงานผลการเรียนในรูปแบบที่สวยงามและเป็นทางการ</p>
+                    </div>
+                </div>
+
+                <!-- Demo Section -->
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl md:rounded-3xl p-4 md:p-8 mobile-card border border-amber-200">
+                    <div class="text-center">
+                        <h4 class="text-lg md:text-2xl font-bold text-amber-800 mb-3 md:mb-4">🎯 ทดลองใช้งาน</h4>
+                        <p class="text-sm md:text-base mobile-text text-amber-700 mb-4 md:mb-6">ลองค้นหาด้วยรหัสตัวอย่างเหล่านี้</p>
+                        <div class="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
+                            <button onclick="document.getElementById('studentIdSearch').value='65001'; searchStudentInitial(event)" class="bg-white text-amber-700 px-4 py-2 md:px-6 md:py-3 mobile-button rounded-lg md:rounded-xl font-medium hover:bg-amber-50 transition-colors border border-amber-200 text-sm md:text-base">
+                                รหัส: 65001
+                            </button>
+                            <button onclick="document.getElementById('studentIdSearch').value='65002'; searchStudentInitial(event)" class="bg-white text-amber-700 px-4 py-2 md:px-6 md:py-3 mobile-button rounded-lg md:rounded-xl font-medium hover:bg-amber-50 transition-colors border border-amber-200 text-sm md:text-base">
+                                รหัส: 65002
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Admin Access Button -->
+                <div class="show-mobile hidden mt-6">
+                    <button onclick="showSection('admin')" class="w-full bg-gray-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <span>เข้าสู่ระบบผู้ดูแล</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Results Selection -->
+    <div id="studentSelection" class="hidden min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div class="container mx-auto px-3 md:px-4 py-4 md:py-8 mobile-container">
+            <div class="max-w-4xl mx-auto">
+                <!-- Back Button -->
+                <button onclick="backToSearch()" class="mb-4 md:mb-6 flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors no-print text-sm md:text-base">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>กลับไปค้นหาใหม่</span>
+                </button>
+
+                <!-- Student Info Card -->
+                <div id="studentInfoCard" class="bg-white rounded-xl md:rounded-2xl card-shadow p-4 md:p-8 mobile-card mb-6 md:mb-8 no-print">
+                    <div class="text-center mb-6 md:mb-8">
+                        <div class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                            <svg class="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg md:text-2xl mobile-title font-bold text-gray-800 mb-2">พบข้อมูลนักเรียน</h2>
+                        <p id="foundStudentInfo" class="text-base md:text-lg mobile-text text-gray-600">-</p>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl md:rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4 text-center">เลือกปีการศึกษาและเทอม</h3>
+                        <form onsubmit="searchStudentFinal(event)" class="space-y-4 md:space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mobile-grid-1">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2 md:mb-3">ปีการศึกษา</label>
+                                    <select id="academicYearSelect" class="w-full px-3 py-2 md:px-4 md:py-3 mobile-input border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-4 focus:ring-blue-500 focus:ring-opacity-20 focus:border-blue-500 transition-all text-base">
+                                        <option value="">เลือกปีการศึกษา</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2 md:mb-3">เทอม</label>
+                                    <select id="semesterSelect" class="w-full px-3 py-2 md:px-4 md:py-3 mobile-input border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-4 focus:ring-blue-500 focus:ring-opacity-20 focus:border-blue-500 transition-all text-base">
+                                        <option value="">เลือกเทอม</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 md:py-4 mobile-button rounded-lg md:rounded-xl font-semibold text-base md:text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                📊 ดูผลการเรียน
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Available Data Preview -->
+                    <div id="availableDataPreview" class="space-y-3 md:space-y-4">
+                        <h4 class="text-base md:text-lg font-semibold text-gray-800">ข้อมูลที่มีในระบบ:</h4>
+                        <div id="availableDataList" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mobile-grid-1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Results -->
+            <div id="studentResults" class="hidden">
+                <div class="bg-white rounded-xl card-shadow overflow-hidden">
+                    <!-- Header with Logo and Title (Always Visible) -->
+                    <div class="text-center mb-8 text-black border-b-2 border-gray-800 pb-6 pt-6">
+                        <!-- Top Logos -->
+                        <div class="flex items-center justify-center space-x-8 mb-6">
+                            <!-- Left Logo -->
+                            <div class="w-20 h-20">
+                                <svg class="w-full h-full text-gray-800" fill="currentColor" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="3"/>
+                                    <path d="M30 35 L50 25 L70 35 L70 45 L50 55 L30 45 Z" fill="currentColor"/>
+                                    <path d="M35 50 L35 70 L50 75 L65 70 L65 50" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="50" cy="62" r="3" fill="currentColor"/>
+                                    <text x="50" y="85" text-anchor="middle" font-size="8" font-weight="bold">SCHOOL</text>
+                                </svg>
+                            </div>
+                            
+                            <!-- Right Logo/Emblem -->
+                            <div class="w-20 h-20">
+                                <svg class="w-full h-full text-gray-800" fill="currentColor" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="3"/>
+                                    <path d="M50 15 L60 35 L80 35 L65 50 L70 70 L50 60 L30 70 L35 50 L20 35 L40 35 Z" fill="currentColor"/>
+                                    <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <text x="50" y="85" text-anchor="middle" font-size="6" font-weight="bold">THAILAND</text>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Title Section -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-center gap-4 mb-4">
+                                <h2 class="text-3xl font-bold text-gray-800">ใบรายงานผลการเรียน</h2>
+                                <p id="printAcademicYear" class="text-3xl font-bold text-gray-800">ประจำปีการศึกษา -</p>
+                            </div>
+                            
+                            <!-- School Info -->
+                            <div class="text-center">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-1">โรงเรียนตัวอย่าง</h3>
+                                <p class="text-sm text-gray-600 mb-3">อำเภอเมือง จังหวัดกรุงเทพมหานคร 10200</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Info for Print -->
+                    <div class="print-only mb-6 text-black">
+                        <div class="text-base space-y-2">
+                            <div class="flex items-center gap-x-8">
+                                <span><span class="font-medium">รหัสประจำตัวนักเรียน:</span> <span id="printStudentId" class="ml-2 border-b border-dotted border-gray-600 inline-block min-w-32">-</span></span>
+                                <span><span class="font-medium">ชื่อ-นามสกุล:</span> <span id="printStudentName" class="ml-2 border-b border-dotted border-gray-600 inline-block min-w-64">-</span></span>
+                            </div>
+                            <div class="flex items-center gap-x-8">
+                                <span><span class="font-medium">ระดับชั้น:</span> <span id="printGrade" class="ml-2 border-b border-dotted border-gray-600 inline-block min-w-32">-</span></span>
+                                <span><span class="font-medium">เทอม:</span> <span id="printSemester" class="ml-2 border-b border-dotted border-gray-600 inline-block min-w-32 font-bold">-</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Info for Screen -->
+                    <div class="no-print bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 md:p-6 mobile-card">
+                        <div class="grid grid-cols-2 md:flex md:flex-wrap md:items-center md:justify-center gap-2 md:gap-8 text-xs md:text-base mobile-text">
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2">
+                                <span class="text-blue-100 md:text-white">รหัสประจำตัว:</span>
+                                <span id="displayStudentId" class="font-semibold">-</span>
+                            </div>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2">
+                                <span class="text-blue-100 md:text-white">ชื่อ-นามสกุล:</span>
+                                <span id="displayStudentName" class="font-semibold">-</span>
+                            </div>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2">
+                                <span class="text-blue-100 md:text-white">ระดับชั้น:</span>
+                                <span id="displayGrade" class="font-semibold">-</span>
+                            </div>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2">
+                                <span class="text-blue-100 md:text-white">เทอม:</span>
+                                <span id="displaySemester" class="font-semibold">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grades Table -->
+                    <div class="p-3 md:p-6 mobile-card">
+                        <div class="overflow-x-auto mobile-table-scroll border border-gray-200 rounded-lg print-table-container">
+                            <table class="min-w-full mobile-table">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-2 md:px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสวิชา</th>
+                                        <th class="px-2 md:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อวิชา</th>
+                                        <th class="px-2 md:px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hide-mobile">ประเภท</th>
+                                        <th class="px-2 md:px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">หน่วยกิต</th>
+                                        <th class="px-2 md:px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">คะแนน</th>
+                                        <th class="px-2 md:px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">เกรด</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gradesTableBody" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                                <tfoot class="bg-gray-50">
+                                    <tr class="border-t-2 border-gray-300">
+                                        <td colspan="4" class="md:hidden px-2 py-3 text-right text-xs md:text-sm font-bold text-gray-800">เกรดเฉลี่ย</td>
+                                        <td colspan="5" class="hidden md:table-cell px-3 py-3 text-right text-sm font-bold text-gray-800">เกรดเฉลี่ย</td>
+                                        <td class="px-2 md:px-3 py-3 text-center">
+                                            <span class="inline-block px-2 md:px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs md:text-sm font-bold">
+                                                <span id="summaryGPA">-</span>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <!-- Summary Section -->
+                        <div class="mt-4 md:mt-6 grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-4 no-print mobile-stats">
+                            <div class="bg-gray-50 p-3 md:p-4 rounded-lg text-center mobile-stats">
+                                <p class="text-xs md:text-sm text-gray-600">หน่วยกิตรวม</p>
+                                <p id="totalCredits" class="text-lg md:text-xl font-bold text-gray-800">-</p>
+                            </div>
+                            <div class="bg-blue-50 p-3 md:p-4 rounded-lg text-center mobile-stats">
+                                <p class="text-xs md:text-sm text-blue-600">เกรดเฉลี่ย</p>
+                                <p id="summaryGPA2" class="text-lg md:text-xl font-bold text-blue-800">-</p>
+                            </div>
+                            <div class="bg-green-50 p-3 md:p-4 rounded-lg text-center mobile-stats">
+                                <p class="text-xs md:text-sm text-green-600">ผลการเรียน</p>
+                                <p id="academicStatus" class="text-sm md:text-xl font-bold text-green-800">-</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile Print Button -->
+                        <div class="mt-4 md:mt-6 no-print">
+                            <button onclick="printReport()" class="w-full md:w-auto bg-green-600 text-white px-4 py-3 md:px-6 md:py-2 mobile-button rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H3a2 2 0 00-2 2v4a2 2 0 002 2h2.5a2 2 0 012 2v2a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>พิมพ์ใบรายงาน</span>
+                            </button>
+                            <div class="text-xs md:text-sm text-gray-600 text-center mt-2">
+                                <p>วันที่พิมพ์: <span id="printDate"></span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Back to Search Button (Mobile) -->
+                        <div class="mt-4 no-print show-mobile hidden">
+                            <button onclick="backToSearch()" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span>ค้นหาใหม่</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Print Footer -->
+                        <div class="print-only mt-8 pt-4 border-t-2 border-gray-300">
+                            <div class="grid grid-cols-2 gap-8">
+                                <div class="text-center">
+                                    <div class="border-b border-gray-400 w-48 mx-auto mb-2"></div>
+                                    <p class="text-sm">ลายเซ็นครูประจำชั้น</p>
+                                    <p class="text-xs text-gray-600 mt-1">วันที่ ........................</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="border-b border-gray-400 w-48 mx-auto mb-2"></div>
+                                    <p class="text-sm">ลายเซ็นผู้อำนวยการ</p>
+                                    <p class="text-xs text-gray-600 mt-1">วันที่ ........................</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="adminLogin" class="container mx-auto px-4 py-8 hidden">
+        <div class="max-w-md mx-auto">
+            <div class="bg-white rounded-xl card-shadow p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">เข้าสู่ระบบผู้ดูแล</h2>
+                    <p class="text-gray-600 mt-2">Admin Panel Access</p>
+                </div>
+                
+                <form onsubmit="adminLogin(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                        <input type="text" id="adminUsername" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="กรอกชื่อผู้ใช้">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                        <input type="password" id="adminPassword" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="กรอกรหัสผ่าน">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all">
+                        เข้าสู่ระบบ
+                    </button>
+                </form>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800"><strong>Demo:</strong></p>
+                    <p class="text-sm text-blue-600">Username: admin</p>
+                    <p class="text-sm text-blue-600">Password: admin123</p>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <button onclick="backToHome()" class="text-blue-600 hover:text-blue-700 text-sm underline transition-colors">
+                        ← กลับไปหน้าหลัก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="adminSection" class="flex min-h-full hidden">
+        <!-- Sidebar -->
+        <div id="adminSidebar" class="bg-gray-900 text-white w-64 h-full fixed top-0 left-0 lg:relative lg:translate-x-0 transform -translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
+            <div class="p-6 flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xl font-bold">Admin Panel</h2>
+                    <button onclick="toggleSidebar()" class="lg:hidden text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <nav class="space-y-2 flex-1">
+                    <button onclick="showAdminContent('dashboard')" class="admin-menu-item w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-3 bg-gray-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        </svg>
+                        <span>แดชบอร์ด</span>
+                    </button>
+                    
+                    <button onclick="showAdminContent('manage')" class="admin-menu-item w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>จัดการนักเรียน</span>
+                    </button>
+                    
+                    <button onclick="showAdminContent('bulk')" class="admin-menu-item w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <span>อัพโหลดไฟล์</span>
+                    </button>
+                    
+                    <button onclick="showAdminContent('students')" class="admin-menu-item w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                        <span>รายชื่อนักเรียน</span>
+                    </button>
+                    
+                    <button onclick="downloadTemplate()" class="admin-menu-item w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>ดาวน์โหลด Template</span>
+                    </button>
+                </nav>
+                
+                <div class="mt-auto pt-8 border-t border-gray-700">
+                    <button onclick="adminLogout()" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span>ออกจากระบบ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 lg:ml-0">
+            <!-- Top Bar -->
+            <div class="bg-white shadow-sm border-b px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <h1 id="adminContentTitle" class="text-2xl font-bold text-gray-800">แดชบอร์ด</h1>
+                </div>
+                <div class="text-sm text-gray-600">
+                    ระบบจัดการข้อมูลนักเรียน
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="p-6">
+                <!-- Dashboard Content -->
+                <div id="dashboardContent" class="admin-content">
+                    <!-- Dashboard Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100">นักเรียนทั้งหมด</p>
+                                    <p id="totalStudents" class="text-3xl font-bold">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-400 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100">เกรดเฉลี่ย</p>
+                                    <p id="averageGPA" class="text-3xl font-bold">0.00</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-400 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-100">เกรด A</p>
+                                    <p id="gradeACount" class="text-3xl font-bold">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-400 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-100">รายวิชาทั้งหมด</p>
+                                    <p id="totalSubjects" class="text-3xl font-bold">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-400 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">ภาพรวมระบบ</h3>
+                        <p class="text-gray-600">ยินดีต้อนรับสู่ระบบจัดการข้อมูลนักเรียน ใช้เมนูด้านซ้ายเพื่อจัดการข้อมูลต่างๆ</p>
+                    </div>
+                </div>
+        
+
+
+                <!-- Manage Students Content -->
+                <div id="manageContent" class="admin-content hidden">
+                    <!-- Tab Navigation -->
+                    <div class="bg-white rounded-xl card-shadow mb-6">
+                        <div class="flex border-b">
+                            <button onclick="showManageTab('students')" id="studentsTab" class="manage-tab px-6 py-4 font-medium text-blue-600 border-b-2 border-blue-600">
+                                รายชื่อนักเรียน
+                            </button>
+                            <button onclick="showManageTab('subjects')" id="subjectsTab" class="manage-tab px-6 py-4 font-medium text-gray-500 hover:text-gray-700">
+                                จัดการรายวิชา
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Students Tab -->
+                    <div id="studentsTabContent" class="manage-tab-content">
+                        <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-semibold text-gray-800">เพิ่มนักเรียนใหม่</h3>
+                            </div>
+                            <form onsubmit="addNewStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสประจำตัว</label>
+                                    <input type="text" id="newStudentId" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+                                    <input type="text" id="newStudentName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">ระดับชั้น</label>
+                                    <input type="text" id="newStudentGrade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                        เพิ่มนักเรียน
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Students List -->
+                        <div class="bg-white rounded-xl card-shadow p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">รายชื่อนักเรียนทั้งหมด</h4>
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสประจำตัว</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ-นามสกุล</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ระดับชั้น</th>
+                                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manageStudentsListBody" class="bg-white divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subjects Tab -->
+                    <div id="subjectsTabContent" class="manage-tab-content hidden">
+                        <!-- Global Subjects Management -->
+                        <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">จัดการรายวิชาทั่วไป (วิชาที่มีทุกคนในโรงเรียน)</h3>
+                            <form onsubmit="addGlobalSubject(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                                <input type="text" id="globalSubjectCode" placeholder="รหัสวิชา" required class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="globalSubjectName" placeholder="ชื่อวิชา" required class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <select id="globalSubjectType" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="วิชาหลัก">วิชาหลัก</option>
+                                    <option value="วิชาเลือก">วิชาเลือก</option>
+                                    <option value="กิจกรรม">กิจกรรม</option>
+                                </select>
+                                <input type="number" id="globalSubjectCredit" placeholder="หน่วยกิต" required min="1" max="6" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <button type="submit" class="bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                                    เพิ่มวิชา
+                                </button>
+                            </form>
+                            
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสวิชา</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อวิชา</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">หน่วยกิต</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="globalSubjectsListBody" class="bg-white divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Subject Templates -->
+                        <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">แม่แบบรายวิชา</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-800 mb-2">ม.6 วิทย์-คณิต</h4>
+                                    <p class="text-sm text-gray-600 mb-3">รายวิชาสำหรับแผนการเรียนวิทย์-คณิต</p>
+                                    <button onclick="loadSubjectTemplate('science')" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700">
+                                        ใช้แม่แบบนี้
+                                    </button>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-800 mb-2">ม.6 ศิลป์-ภาษา</h4>
+                                    <p class="text-sm text-gray-600 mb-3">รายวิชาสำหรับแผนการเรียนศิลป์-ภาษา</p>
+                                    <button onclick="loadSubjectTemplate('arts')" class="w-full bg-green-600 text-white py-2 rounded-lg text-sm hover:bg-green-700">
+                                        ใช้แม่แบบนี้
+                                    </button>
+                                </div>
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-800 mb-2">กำหนดเอง</h4>
+                                    <p class="text-sm text-gray-600 mb-3">สร้างรายวิชาใหม่ตามต้องการ</p>
+                                    <button onclick="loadSubjectTemplate('custom')" class="w-full bg-gray-600 text-white py-2 rounded-lg text-sm hover:bg-gray-700">
+                                        สร้างใหม่
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Grades Form -->
+                        <div class="bg-white rounded-xl card-shadow p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-6">เพิ่มผลการเรียน</h3>
+                            <form onsubmit="addStudentGrades(event)" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">เลือกนักเรียน</label>
+                                        <select id="selectStudent" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option value="">เลือกนักเรียน</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">ปีการศึกษา</label>
+                                        <select id="gradeAcademicYear" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option value="2567">2567</option>
+                                            <option value="2566">2566</option>
+                                            <option value="2565">2565</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">เทอม</label>
+                                        <select id="gradeSemester" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option value="1">เทอม 1</option>
+                                            <option value="2">เทอม 2</option>
+                                            <option value="summer">ฤดูร้อน</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="border-t pt-6">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h4 class="text-lg font-medium text-gray-800">รายวิชาและคะแนน</h4>
+                                        <button type="button" onclick="loadGlobalSubjects()" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700">
+                                            โหลดวิชาทั่วไป
+                                        </button>
+                                    </div>
+                                    <div id="gradesContainer">
+                                        <!-- Subjects will be loaded here -->
+                                    </div>
+                                    <div class="flex space-x-4 mt-4">
+                                        <button type="button" onclick="addCustomSubject()" class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700">
+                                            + เพิ่มวิชาใหม่
+                                        </button>
+                                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700">
+                                            บันทึกผลการเรียน
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk Upload Content -->
+                <div id="bulkContent" class="admin-content hidden">
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">อัพโหลดไฟล์ CSV</h3>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <input type="file" id="csvFile" accept=".csv,.xls,.xlsx" class="hidden" onchange="handleFileUpload(event)">
+                            <label for="csvFile" class="cursor-pointer">
+                                <div class="text-4xl mb-4">📁</div>
+                                <p class="text-lg font-medium text-gray-700">คลิกเพื่อเลือกไฟล์ CSV หรือ Excel</p>
+                                <p class="text-sm text-gray-500 mt-2">รองรับไฟล์ .csv, .xls, .xlsx</p>
+                            </label>
+                        </div>
+                        <div id="uploadStatus" class="mt-4 hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Students Management Content -->
+                <div id="studentsContent" class="admin-content hidden">
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">รายชื่อนักเรียนและผลการเรียน</h3>
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">รหัสประจำตัว</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">ชื่อ-นามสกุล</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">ระดับชั้น</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">เกรดเฉลี่ย</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsListBody" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader Overlay -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-content">
+            <div id="loaderAnimation" class="spinner"></div>
+            <h3 id="loaderTitle" class="text-lg font-semibold text-gray-800 mb-2">กำลังโหลด...</h3>
+            <p id="loaderMessage" class="text-gray-600 text-sm">กรุณารอสักครู่</p>
+            <div id="loaderProgress" class="progress-bar hidden">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Loader Functions
+        function showLoader(title = 'กำลังโหลด...', message = 'กรุณารอสักครู่', type = 'spinner') {
+            const overlay = document.getElementById('loaderOverlay');
+            const animation = document.getElementById('loaderAnimation');
+            const titleEl = document.getElementById('loaderTitle');
+            const messageEl = document.getElementById('loaderMessage');
+            const progressEl = document.getElementById('loaderProgress');
+            
+            // Set content
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            // Reset animation container
+            animation.className = '';
+            progressEl.classList.add('hidden');
+            
+            // Set animation type
+            switch(type) {
+                case 'dots':
+                    animation.className = 'dots-loader';
+                    animation.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+                    break;
+                case 'pulse':
+                    animation.className = 'pulse-loader';
+                    animation.innerHTML = '';
+                    break;
+                case 'progress':
+                    animation.className = 'spinner';
+                    animation.innerHTML = '';
+                    progressEl.classList.remove('hidden');
+                    break;
+                default:
+                    animation.className = 'spinner';
+                    animation.innerHTML = '';
+            }
+            
+            // Show overlay
+            overlay.classList.add('show');
+        }
+        
+        function hideLoader() {
+            const overlay = document.getElementById('loaderOverlay');
+            overlay.classList.remove('show');
+        }
+        
+        // Enhanced async function wrapper
+        async function withLoader(asyncFunction, title, message, type = 'spinner') {
+            showLoader(title, message, type);
+            try {
+                const result = await asyncFunction();
+                return result;
+            } catch (error) {
+                console.error('Error in withLoader:', error);
+                showMessage(error.message || 'เกิดข้อผิดพลาด', 'error');
+                throw error;
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        // Simulate async delay for demo purposes
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Sample data with academic year and semester
+        let studentsData = {
+            "65001": {
+                "2567": {
+                    "1": {
+                        id: "65001",
+                        name: "นางสาวสมใจ ใจดี",
+                        grade: "ม.6/1",
+                        academicYear: "2567",
+                        semester: "1",
+                        subjects: [
+                            { code: "TH601", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3, score: "85", grade: "4.0" },
+                            { code: "EN601", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3, score: "78", grade: "3.5" },
+                            { code: "MA601", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4, score: "92", grade: "4.0" },
+                            { code: "SC601", name: "วิทยาศาสตร์", type: "วิชาหลัก", credit: 4, score: "ร", grade: "0" },
+                            { code: "SO601", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 3, score: "75", grade: "3.0" },
+                            { code: "PE601", name: "พลศึกษา", type: "วิชาเลือก", credit: 1, score: "88", grade: "4.0" }
+                        ]
+                    },
+                    "2": {
+                        id: "65001",
+                        name: "นางสาวสมใจ ใจดี",
+                        grade: "ม.6/1",
+                        academicYear: "2567",
+                        semester: "2",
+                        subjects: [
+                            { code: "TH602", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3, score: "88", grade: "4.0" },
+                            { code: "EN602", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3, score: "82", grade: "3.5" },
+                            { code: "MA602", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4, score: "90", grade: "4.0" },
+                            { code: "SC602", name: "วิทยาศาสตร์", type: "วิชาหลัก", credit: 4, score: "85", grade: "4.0" },
+                            { code: "SO602", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 3, score: "78", grade: "3.5" }
+                        ]
+                    }
+                },
+                "2566": {
+                    "1": {
+                        id: "65001",
+                        name: "นางสาวสมใจ ใจดี",
+                        grade: "ม.5/1",
+                        academicYear: "2566",
+                        semester: "1",
+                        subjects: [
+                            { code: "TH501", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3, score: "82", grade: "3.5" },
+                            { code: "EN501", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3, score: "75", grade: "3.0" },
+                            { code: "MA501", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4, score: "88", grade: "4.0" }
+                        ]
+                    }
+                }
+            },
+            "65002": {
+                "2567": {
+                    "1": {
+                        id: "65002",
+                        name: "นายสมชาย รักเรียน",
+                        grade: "ม.6/2",
+                        academicYear: "2567",
+                        semester: "1",
+                        subjects: [
+                            { code: "TH601", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3, score: "80", grade: "3.5" },
+                            { code: "EN601", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3, score: "มส.", grade: "0" },
+                            { code: "MA601", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4, score: "88", grade: "4.0" },
+                            { code: "SC601", name: "วิทยาศาสตร์", type: "วิชาหลัก", credit: 4, score: "82", grade: "3.5" },
+                            { code: "SO601", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 3, score: "79", grade: "3.5" }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // Global variable to store current student data
+        let currentStudentId = null;
+        let currentStudentData = null;
+        
+        // Global subjects that all students can take
+        let globalSubjects = [
+            { code: "TH601", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3 },
+            { code: "EN601", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3 },
+            { code: "MA601", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4 },
+            { code: "SC601", name: "วิทยาศาสตร์", type: "วิชาหลัก", credit: 4 },
+            { code: "SO601", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 3 },
+            { code: "PE601", name: "พลศึกษา", type: "วิชาเลือก", credit: 1 }
+        ];
+
+        // Original showSection function (kept for compatibility)
+        function showSectionOriginal(section) {
+            document.getElementById('landingSection').classList.toggle('hidden', section !== 'student');
+            document.getElementById('studentSelection').classList.add('hidden');
+            document.getElementById('studentResults').classList.add('hidden');
+            document.getElementById('adminLogin').classList.toggle('hidden', section !== 'admin');
+            document.getElementById('adminSection').classList.add('hidden');
+        }
+
+        // New search functions
+        async function searchStudentInitial(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('studentIdSearch').value.trim();
+            
+            if (!studentId) {
+                showMessage('กรุณากรอกรหัสประจำตัวนักเรียน', 'error');
+                return;
+            }
+            
+            await withLoader(async () => {
+                await delay(800); // Simulate search time
+                
+                const studentRecord = studentsData[studentId];
+                if (!studentRecord) {
+                    throw new Error('ไม่พบข้อมูลนักเรียนรหัส ' + studentId);
+                }
+                
+                // Store current student data
+                currentStudentId = studentId;
+                currentStudentData = studentRecord;
+                
+                // Show student selection page
+                showStudentSelection(studentRecord);
+                showMessage('พบข้อมูลนักเรียนแล้ว!', 'success');
+            }, 'กำลังค้นหา...', `ค้นหาข้อมูลนักเรียนรหัส ${studentId}`, 'dots');
+        }
+
+        function showStudentSelection(studentRecord) {
+            // Hide header and landing page, show selection page
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('landingSection').classList.add('hidden');
+            document.getElementById('studentSelection').classList.remove('hidden');
+            
+            // Get first available student data for display
+            let firstStudent = null;
+            Object.values(studentRecord).forEach(yearData => {
+                Object.values(yearData).forEach(semesterData => {
+                    if (!firstStudent) firstStudent = semesterData;
+                });
+            });
+            
+            if (firstStudent) {
+                document.getElementById('foundStudentInfo').textContent = 
+                    `${firstStudent.name} (${firstStudent.id})`;
+            }
+            
+            // Populate year and semester options
+            populateYearSemesterOptions(studentRecord);
+            
+            // Show available data preview
+            showAvailableDataPreview(studentRecord);
+        }
+
+        function populateYearSemesterOptions(studentRecord) {
+            const yearSelect = document.getElementById('academicYearSelect');
+            const semesterSelect = document.getElementById('semesterSelect');
+            
+            // Clear existing options
+            yearSelect.innerHTML = '<option value="">เลือกปีการศึกษา</option>';
+            semesterSelect.innerHTML = '<option value="">เลือกเทอม</option>';
+            
+            // Get available years
+            const availableYears = Object.keys(studentRecord).sort((a, b) => b - a);
+            availableYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+            
+            // Update semester options when year changes
+            yearSelect.addEventListener('change', function() {
+                const selectedYear = this.value;
+                semesterSelect.innerHTML = '<option value="">เลือกเทอม</option>';
+                
+                if (selectedYear && studentRecord[selectedYear]) {
+                    const availableSemesters = Object.keys(studentRecord[selectedYear]);
+                    availableSemesters.forEach(semester => {
+                        const option = document.createElement('option');
+                        option.value = semester;
+                        option.textContent = semester === 'summer' ? 'เทอมฤดูร้อน' : `เทอม ${semester}`;
+                        semesterSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function showAvailableDataPreview(studentRecord) {
+            const container = document.getElementById('availableDataList');
+            container.innerHTML = '';
+            
+            Object.keys(studentRecord).forEach(year => {
+                Object.keys(studentRecord[year]).forEach(semester => {
+                    const semesterData = studentRecord[year][semester];
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg md:rounded-xl p-3 md:p-4 mobile-card border border-gray-200 hover:shadow-md transition-all cursor-pointer';
+                    card.onclick = () => {
+                        // Set the values
+                        document.getElementById('academicYearSelect').value = year;
+                        document.getElementById('academicYearSelect').dispatchEvent(new Event('change'));
+                        setTimeout(() => {
+                            document.getElementById('semesterSelect').value = semester;
+                            // Auto search after setting values
+                            setTimeout(() => {
+                                const semesterData = currentStudentData[year][semester];
+                                displayStudentResults(semesterData);
+                                
+                                // Hide selection page and show results
+                                document.getElementById('studentSelection').classList.add('hidden');
+                                showMessage('แสดงผลการเรียนเรียบร้อย!', 'success');
+                            }, 150);
+                        }, 100);
+                    };
+                    
+                    const semesterName = semester === 'summer' ? 'เทอมฤดูร้อน' : `เทอม ${semester}`;
+                    const gpa = calculateGPA(semesterData.subjects);
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h5 class="text-sm md:text-base font-semibold text-gray-800">ปีการศึกษา ${year}</h5>
+                                <p class="text-xs md:text-sm mobile-text text-gray-600">${semesterName}</p>
+                                <p class="text-xs md:text-sm mobile-text text-gray-600">${semesterData.subjects.length} วิชา</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs md:text-sm text-gray-500">เกรดเฉลี่ย</p>
+                                <p class="text-base md:text-lg font-bold text-blue-600">${gpa}</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+        
+        // Mobile-specific functions
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+        
+        // Enhanced mobile navigation
+        function addMobileNavigation() {
+            if (isMobile()) {
+                // Add mobile-specific classes
+                document.querySelectorAll('.show-mobile').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+                
+                // Optimize touch interactions
+                document.addEventListener('touchstart', function() {}, {passive: true});
+            }
+        }
+        
+        // Initialize mobile optimizations
+        document.addEventListener('DOMContentLoaded', function() {
+            addMobileNavigation();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                addMobileNavigation();
+            });
+            
+            updateDashboard();
+            updateStudentsList();
+            updateGlobalSubjectsList();
+        });
+
+        async function searchStudentFinal(event) {
+            event.preventDefault();
+            const academicYear = document.getElementById('academicYearSelect').value;
+            const semester = document.getElementById('semesterSelect').value;
+            
+            if (!academicYear || !semester) {
+                showMessage('กรุณาเลือกปีการศึกษาและเทอม', 'error');
+                return;
+            }
+            
+            if (!currentStudentData || !currentStudentData[academicYear] || !currentStudentData[academicYear][semester]) {
+                showMessage('ไม่พบข้อมูลที่เลือก', 'error');
+                return;
+            }
+            
+            await withLoader(async () => {
+                await delay(600); // Simulate processing time
+                
+                const semesterData = currentStudentData[academicYear][semester];
+                displayStudentResults(semesterData);
+                
+                // Hide selection page and show results
+                document.getElementById('studentSelection').classList.add('hidden');
+                showMessage('แสดงผลการเรียนเรียบร้อย!', 'success');
+            }, 'กำลังโหลดผลการเรียน...', 'กำลังประมวลผลข้อมูล', 'pulse');
+        }
+
+        function backToSearch() {
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('studentSelection').classList.add('hidden');
+            document.getElementById('studentResults').classList.add('hidden');
+            document.getElementById('landingSection').classList.remove('hidden');
+            
+            // Clear search input
+            document.getElementById('studentIdSearch').value = '';
+            
+            // Reset global variables
+            currentStudentId = null;
+            currentStudentData = null;
+        }
+
+        // Message and confirmation functions
+        function showMessage(message, type = 'info') {
+            // Create message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full`;
+            
+            if (type === 'success') {
+                messageDiv.className += ' bg-green-100 border border-green-400 text-green-700';
+                messageDiv.innerHTML = `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>${message}</div>`;
+            } else if (type === 'error') {
+                messageDiv.className += ' bg-red-100 border border-red-400 text-red-700';
+                messageDiv.innerHTML = `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>${message}</div>`;
+            } else {
+                messageDiv.className += ' bg-blue-100 border border-blue-400 text-blue-700';
+                messageDiv.innerHTML = `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>${message}</div>`;
+            }
+            
+            document.body.appendChild(messageDiv);
+            
+            // Animate in
+            setTimeout(() => {
+                messageDiv.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                messageDiv.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function showConfirm(message) {
+            // Create modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl';
+            modal.innerHTML = `
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">ยืนยันการดำเนินการ</h3>
+                    <p class="text-gray-600">${message}</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">ยกเลิก</button>
+                    <button id="confirmBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">ยืนยัน</button>
+                </div>
+            `;
+            
+            backdrop.appendChild(modal);
+            document.body.appendChild(backdrop);
+            
+            return new Promise((resolve) => {
+                const confirmBtn = modal.querySelector('#confirmBtn');
+                const cancelBtn = modal.querySelector('#cancelBtn');
+                
+                confirmBtn.onclick = () => {
+                    document.body.removeChild(backdrop);
+                    resolve(true);
+                };
+                
+                cancelBtn.onclick = () => {
+                    document.body.removeChild(backdrop);
+                    resolve(false);
+                };
+                
+                backdrop.onclick = (e) => {
+                    if (e.target === backdrop) {
+                        document.body.removeChild(backdrop);
+                        resolve(false);
+                    }
+                };
+            });
+        }
+
+        // Admin authentication
+        async function adminLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            await withLoader(async () => {
+                await delay(1000); // Simulate authentication time
+                
+                if (username === 'admin' && password === 'admin123') {
+                    document.getElementById('adminLogin').classList.add('hidden');
+                    document.getElementById('adminSection').classList.remove('hidden');
+                    updateDashboard();
+                    updateStudentsList();
+                    showMessage('เข้าสู่ระบบสำเร็จ', 'success');
+                } else {
+                    throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+                }
+            }, 'กำลังเข้าสู่ระบบ...', 'กำลังตรวจสอบข้อมูลผู้ใช้', 'spinner');
+        }
+
+        function adminLogout() {
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function backToHome() {
+            document.getElementById('adminLogin').classList.add('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('landingSection').classList.remove('hidden');
+            document.getElementById('studentSelection').classList.add('hidden');
+            document.getElementById('studentResults').classList.add('hidden');
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // Close sidebar when clicking outside (mobile only)
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('adminSidebar');
+            const adminSection = document.getElementById('adminSection');
+            
+            // Only apply on mobile (when sidebar is positioned fixed)
+            if (window.innerWidth < 1024 && adminSection && !adminSection.classList.contains('hidden')) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isToggleButton = event.target.closest('button[onclick="toggleSidebar()"]');
+                
+                // If click is outside sidebar and not on toggle button, close sidebar
+                if (!isClickInsideSidebar && !isToggleButton && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            }
+        });
+
+        // Admin content management
+        function showAdminContent(contentType) {
+            // Hide all content sections
+            document.querySelectorAll('.admin-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active state from all menu items
+            document.querySelectorAll('.admin-menu-item').forEach(item => {
+                item.classList.remove('bg-gray-800');
+            });
+            
+            // Show selected content
+            const contentMap = {
+                'dashboard': 'dashboardContent',
+                'manage': 'manageContent',
+                'bulk': 'bulkContent',
+                'students': 'studentsContent'
+            };
+            
+            const titleMap = {
+                'dashboard': 'แดชบอร์ด',
+                'manage': 'จัดการนักเรียน',
+                'bulk': 'อัพโหลดไฟล์',
+                'students': 'รายชื่อนักเรียน'
+            };
+            
+            if (contentMap[contentType]) {
+                document.getElementById(contentMap[contentType]).classList.remove('hidden');
+                document.getElementById('adminContentTitle').textContent = titleMap[contentType];
+                
+                // Find and activate the correct menu item
+                const menuButtons = document.querySelectorAll('.admin-menu-item');
+                menuButtons.forEach((button, index) => {
+                    const buttonContentTypes = ['dashboard', 'manage', 'bulk', 'students'];
+                    if (buttonContentTypes[index] === contentType) {
+                        button.classList.add('bg-gray-800');
+                    }
+                });
+                
+                // Hide sidebar on mobile after selection
+                if (window.innerWidth < 1024) {
+                    document.getElementById('adminSidebar').classList.add('-translate-x-full');
+                }
+                
+                // Update content when showing manage page
+                if (contentType === 'manage') {
+                    updateManageStudentsList();
+                    updateStudentSelect();
+                    updateGlobalSubjectsList();
+                }
+            }
+        }
+
+        // Dashboard functions
+        function updateDashboard() {
+            let totalStudents = 0;
+            let totalGPA = 0;
+            let gradeACount = 0;
+            let totalSubjects = 0;
+            let studentCount = 0;
+            
+            Object.values(studentsData).forEach(studentRecord => {
+                Object.values(studentRecord).forEach(yearData => {
+                    Object.values(yearData).forEach(semesterData => {
+                        studentCount++;
+                        const gpa = parseFloat(calculateGPA(semesterData.subjects));
+                        totalGPA += gpa;
+                        totalSubjects += semesterData.subjects.length;
+                        
+                        semesterData.subjects.forEach(subject => {
+                            if (parseFloat(subject.grade) >= 3.5) {
+                                gradeACount++;
+                            }
+                        });
+                    });
+                });
+            });
+            
+            totalStudents = Object.keys(studentsData).length;
+            
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('averageGPA').textContent = studentCount > 0 ? (totalGPA / studentCount).toFixed(2) : '0.00';
+            document.getElementById('gradeACount').textContent = gradeACount;
+            document.getElementById('totalSubjects').textContent = totalSubjects;
+        }
+
+        // Grade calculation
+        function calculateGrade(score) {
+            if (typeof score === 'string') {
+                const lowerScore = score.toLowerCase();
+                if (lowerScore.includes('ร') || lowerScore.includes('มส') || lowerScore.includes('มผ')) {
+                    return "0";
+                }
+            }
+            
+            const numScore = parseFloat(score);
+            if (isNaN(numScore)) return "0";
+            
+            if (numScore >= 80) return "4.0";
+            if (numScore >= 75) return "3.5";
+            if (numScore >= 70) return "3.0";
+            if (numScore >= 65) return "2.5";
+            if (numScore >= 60) return "2.0";
+            if (numScore >= 55) return "1.5";
+            if (numScore >= 50) return "1.0";
+            return "0";
+        }
+
+        function calculateGPA(subjects) {
+            let totalPoints = 0;
+            let totalCredits = 0;
+            
+            subjects.forEach(subject => {
+                const credit = parseInt(subject.credit);
+                const grade = parseFloat(subject.grade);
+                totalPoints += credit * grade;
+                totalCredits += credit;
+            });
+            
+            return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+        }
+
+
+
+        function displayStudentResults(student) {
+            // Update screen display
+            document.getElementById('displayStudentId').textContent = student.id;
+            document.getElementById('displayStudentName').textContent = student.name;
+            document.getElementById('displayGrade').textContent = student.grade;
+            
+            // Display semester info for screen
+            const semesterText = student.semester === 'summer' ? 'ฤดูร้อน' : `เทอม ${student.semester}`;
+            document.getElementById('displaySemester').textContent = semesterText;
+            
+            const gpa = calculateGPA(student.subjects);
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString('th-TH');
+            
+            // Update print display
+            document.getElementById('printStudentId').textContent = student.id;
+            document.getElementById('printStudentName').textContent = student.name;
+            document.getElementById('printGrade').textContent = student.grade;
+            
+            // Display semester info for print (fix duplicate variable name)
+            const printSemesterText = student.semester === 'summer' ? 'ฤดูร้อน' : `เทอม ${student.semester}`;
+            document.getElementById('printSemester').textContent = printSemesterText;
+            
+            // Update print header academic year
+            document.getElementById('printAcademicYear').textContent = `ประจำปีการศึกษา ${student.academicYear}`;
+            
+            // Calculate totals
+            let totalCredits = 0;
+            student.subjects.forEach(subject => {
+                totalCredits += parseInt(subject.credit);
+            });
+            
+            // Update summary
+            document.getElementById('totalCredits').textContent = totalCredits;
+            document.getElementById('summaryGPA').textContent = gpa;
+            document.getElementById('summaryGPA2').textContent = gpa;
+            
+            const gpaNum = parseFloat(gpa);
+            let status = 'ผ่าน';
+            if (gpaNum >= 3.5) status = 'เกียรตินิยม';
+            else if (gpaNum >= 2.5) status = 'ผ่าน';
+            else if (gpaNum >= 2.0) status = 'ผ่านเงื่อนไข';
+            else status = 'ไม่ผ่าน';
+            document.getElementById('academicStatus').textContent = status;
+            
+            // Clear and rebuild table
+            const tbody = document.getElementById('gradesTableBody');
+            tbody.innerHTML = '';
+            
+            student.subjects.forEach(subject => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const gradeClass = getGradeClass(subject.grade);
+                
+                // Mobile-optimized table row
+                row.innerHTML = `
+                    <td class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-900">${subject.code}</td>
+                    <td class="px-2 md:px-4 py-2 text-xs md:text-sm text-gray-900" title="${subject.name}">${truncateText(subject.name, 15)}</td>
+                    <td class="px-2 md:px-3 py-2 text-xs md:text-sm text-gray-600 hide-mobile">${subject.type}</td>
+                    <td class="px-2 md:px-3 py-2 text-xs md:text-sm text-center text-gray-900">${subject.credit}</td>
+                    <td class="px-2 md:px-3 py-2 text-xs md:text-sm text-center text-gray-900">${subject.score}</td>
+                    <td class="px-2 md:px-3 py-2 text-center">
+                        <span class="inline-block px-1 md:px-2 py-1 rounded-full text-white text-xs font-medium ${gradeClass}">
+                            ${subject.grade}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Show results section with animation
+            const resultsSection = document.getElementById('studentResults');
+            resultsSection.classList.remove('hidden');
+            resultsSection.classList.add('fade-in');
+            
+            // Scroll to results (mobile-friendly)
+            setTimeout(() => {
+                document.getElementById('studentResults').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+        }
+        
+        // Helper function to truncate text for mobile
+        function truncateText(text, maxLength) {
+            if (window.innerWidth <= 768 && text.length > maxLength) {
+                return text.substring(0, maxLength) + '...';
+            }
+            return text;
+        }
+
+        function getGradeClass(grade) {
+            const gradeNum = parseFloat(grade);
+            if (gradeNum >= 3.5) return 'grade-A';
+            if (gradeNum >= 3.0) return 'grade-B';
+            if (gradeNum >= 2.0) return 'grade-C';
+            if (gradeNum >= 1.0) return 'grade-D';
+            return 'grade-F';
+        }
+
+        // Print function
+        function printReport() {
+            window.print();
+        }
+
+        // Navigation functions with header hiding
+        function showSection(section) {
+            const header = document.getElementById('mainHeader');
+            
+            if (section === 'student') {
+                header.classList.remove('hidden');
+                document.getElementById('landingSection').classList.remove('hidden');
+                document.getElementById('studentSelection').classList.add('hidden');
+                document.getElementById('studentResults').classList.add('hidden');
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminSection').classList.add('hidden');
+            } else if (section === 'admin') {
+                header.classList.add('hidden');
+                document.getElementById('landingSection').classList.add('hidden');
+                document.getElementById('studentSelection').classList.add('hidden');
+                document.getElementById('studentResults').classList.add('hidden');
+                document.getElementById('adminLogin').classList.remove('hidden');
+                document.getElementById('adminSection').classList.add('hidden');
+            }
+        }
+
+        // Subject templates
+        const subjectTemplates = {
+            science: [
+                { code: "TH601", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3 },
+                { code: "EN601", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3 },
+                { code: "MA601", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 4 },
+                { code: "SC601", name: "ฟิสิกส์", type: "วิชาหลัก", credit: 4 },
+                { code: "SC602", name: "เคมี", type: "วิชาหลัก", credit: 4 },
+                { code: "SC603", name: "ชีววิทยา", type: "วิชาหลัก", credit: 4 },
+                { code: "SO601", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 3 },
+                { code: "PE601", name: "พลศึกษา", type: "วิชาเลือก", credit: 1 }
+            ],
+            arts: [
+                { code: "TH601", name: "ภาษาไทย", type: "วิชาหลัก", credit: 3 },
+                { code: "EN601", name: "ภาษาอังกฤษ", type: "วิชาหลัก", credit: 3 },
+                { code: "MA601", name: "คณิตศาสตร์", type: "วิชาหลัก", credit: 3 },
+                { code: "SO601", name: "สังคมศึกษา", type: "วิชาหลัก", credit: 4 },
+                { code: "AR601", name: "ศิลปะ", type: "วิชาหลัก", credit: 3 },
+                { code: "MU601", name: "ดนตรี", type: "วิชาเลือก", credit: 2 },
+                { code: "PE601", name: "พลศึกษา", type: "วิชาเลือก", credit: 1 }
+            ],
+            custom: []
+        };
+
+        // Manage tabs
+        function showManageTab(tabType) {
+            // Hide all tab contents
+            document.querySelectorAll('.manage-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active state from all tabs
+            document.querySelectorAll('.manage-tab').forEach(tab => {
+                tab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                tab.classList.add('text-gray-500');
+            });
+            
+            // Show selected tab content
+            if (tabType === 'students') {
+                document.getElementById('studentsTabContent').classList.remove('hidden');
+                document.getElementById('studentsTab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('studentsTab').classList.remove('text-gray-500');
+                updateManageStudentsList();
+            } else if (tabType === 'subjects') {
+                document.getElementById('subjectsTabContent').classList.remove('hidden');
+                document.getElementById('subjectsTab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('subjectsTab').classList.remove('text-gray-500');
+                updateStudentSelect();
+            }
+        }
+
+        // Add new student (basic info only)
+        async function addNewStudent(event) {
+            event.preventDefault();
+            
+            const studentId = document.getElementById('newStudentId').value.trim();
+            const studentName = document.getElementById('newStudentName').value.trim();
+            const studentGrade = document.getElementById('newStudentGrade').value.trim();
+            
+            if (!studentId || !studentName || !studentGrade) {
+                showMessage('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            // Check if student already exists
+            if (studentsData[studentId]) {
+                showMessage('มีนักเรียนรหัสนี้อยู่แล้ว', 'error');
+                return;
+            }
+            
+            await withLoader(async () => {
+                await delay(500); // Simulate processing time
+                
+                // Create basic student record
+                studentsData[studentId] = {
+                    basicInfo: {
+                        id: studentId,
+                        name: studentName,
+                        grade: studentGrade
+                    }
+                };
+                
+                showMessage('เพิ่มนักเรียนเรียบร้อยแล้ว', 'success');
+                document.querySelector('#studentsTabContent form').reset();
+                updateManageStudentsList();
+                updateStudentSelect();
+                updateDashboard();
+            }, 'กำลังเพิ่มนักเรียน...', `เพิ่มข้อมูล ${studentName}`, 'dots');
+        }
+
+        // Update manage students list
+        function updateManageStudentsList() {
+            const tbody = document.getElementById('manageStudentsListBody');
+            tbody.innerHTML = '';
+            
+            Object.keys(studentsData).forEach(studentId => {
+                const studentRecord = studentsData[studentId];
+                let studentInfo = null;
+                
+                // Get basic info or latest data
+                if (studentRecord.basicInfo) {
+                    studentInfo = studentRecord.basicInfo;
+                } else {
+                    // Get from existing data structure
+                    Object.values(studentRecord).forEach(yearData => {
+                        Object.values(yearData).forEach(semesterData => {
+                            if (!studentInfo) studentInfo = semesterData;
+                        });
+                    });
+                }
+                
+                if (studentInfo) {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${studentInfo.id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${studentInfo.name}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${studentInfo.grade}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="editBasicStudent('${studentInfo.id}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors mr-2">
+                                แก้ไข
+                            </button>
+                            <button onclick="deleteBasicStudent('${studentInfo.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                                ลบ
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        // Update student select dropdown
+        function updateStudentSelect() {
+            const select = document.getElementById('selectStudent');
+            select.innerHTML = '<option value="">เลือกนักเรียน</option>';
+            
+            Object.keys(studentsData).forEach(studentId => {
+                const studentRecord = studentsData[studentId];
+                let studentInfo = null;
+                
+                if (studentRecord.basicInfo) {
+                    studentInfo = studentRecord.basicInfo;
+                } else {
+                    Object.values(studentRecord).forEach(yearData => {
+                        Object.values(yearData).forEach(semesterData => {
+                            if (!studentInfo) studentInfo = semesterData;
+                        });
+                    });
+                }
+                
+                if (studentInfo) {
+                    const option = document.createElement('option');
+                    option.value = studentId;
+                    option.textContent = `${studentInfo.id} - ${studentInfo.name}`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        // Load subject template
+        function loadSubjectTemplate(templateType) {
+            const container = document.getElementById('gradesContainer');
+            container.innerHTML = '';
+            
+            const subjects = subjectTemplates[templateType] || [];
+            
+            subjects.forEach(subject => {
+                addSubjectToGrades(subject);
+            });
+            
+            if (templateType === 'custom') {
+                addCustomSubject();
+            }
+        }
+
+        // Add subject to grades container
+        function addSubjectToGrades(subject = {}) {
+            const container = document.getElementById('gradesContainer');
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'grade-subject-row grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 p-4 border border-gray-200 rounded-lg';
+            
+            subjectDiv.innerHTML = `
+                <input type="text" placeholder="รหัสวิชา" value="${subject.code || ''}" class="subject-code px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="text" placeholder="ชื่อวิชา" value="${subject.name || ''}" class="subject-name px-3 py-2 border border-gray-300 rounded-lg">
+                <select class="subject-type px-3 py-2 border border-gray-300 rounded-lg">
+                    <option value="วิชาหลัก" ${subject.type === 'วิชาหลัก' ? 'selected' : ''}>วิชาหลัก</option>
+                    <option value="วิชาเลือก" ${subject.type === 'วิชาเลือก' ? 'selected' : ''}>วิชาเลือก</option>
+                    <option value="กิจกรรม" ${subject.type === 'กิจกรรม' ? 'selected' : ''}>กิจกรรม</option>
+                </select>
+                <input type="number" placeholder="หน่วยกิต" value="${subject.credit || ''}" class="subject-credit px-3 py-2 border border-gray-300 rounded-lg" min="1" max="6">
+                <input type="text" placeholder="คะแนน" class="subject-score px-3 py-2 border border-gray-300 rounded-lg">
+                <button type="button" onclick="removeGradeSubject(this)" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600">ลบ</button>
+            `;
+            
+            container.appendChild(subjectDiv);
+        }
+
+        // Add custom subject
+        function addCustomSubject() {
+            addSubjectToGrades();
+        }
+
+        // Remove grade subject
+        function removeGradeSubject(button) {
+            button.closest('.grade-subject-row').remove();
+        }
+
+        // Add student grades
+        async function addStudentGrades(event) {
+            event.preventDefault();
+            
+            const studentId = document.getElementById('selectStudent').value;
+            const academicYear = document.getElementById('gradeAcademicYear').value;
+            const semester = document.getElementById('gradeSemester').value;
+            
+            if (!studentId) {
+                showMessage('กรุณาเลือกนักเรียน', 'error');
+                return;
+            }
+            
+            const subjectRows = document.querySelectorAll('.grade-subject-row');
+            const subjects = [];
+            
+            subjectRows.forEach(row => {
+                const code = row.querySelector('.subject-code').value.trim();
+                const name = row.querySelector('.subject-name').value.trim();
+                const type = row.querySelector('.subject-type').value;
+                const credit = row.querySelector('.subject-credit').value;
+                const score = row.querySelector('.subject-score').value.trim();
+                
+                if (code && name && credit && score) {
+                    subjects.push({
+                        code,
+                        name,
+                        type,
+                        credit: parseInt(credit),
+                        score,
+                        grade: calculateGrade(score)
+                    });
+                }
+            });
+            
+            if (subjects.length === 0) {
+                showMessage('กรุณากรอกข้อมูลรายวิชาอย่างน้อย 1 วิชา', 'error');
+                return;
+            }
+            
+            // Get student info
+            let studentInfo = studentsData[studentId].basicInfo;
+            if (!studentInfo) {
+                // Get from existing data
+                Object.values(studentsData[studentId]).forEach(yearData => {
+                    if (yearData && typeof yearData === 'object') {
+                        Object.values(yearData).forEach(semesterData => {
+                            if (!studentInfo && semesterData && semesterData.id) {
+                                studentInfo = semesterData;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            if (!studentInfo) {
+                showMessage('ไม่พบข้อมูลนักเรียน', 'error');
+                return;
+            }
+            
+            // Initialize structure
+            if (!studentsData[studentId][academicYear]) {
+                studentsData[studentId][academicYear] = {};
+            }
+            
+            // Check if semester exists
+            if (studentsData[studentId][academicYear][semester]) {
+                const semesterName = semester === 'summer' ? 'ฤดูร้อน' : `เทอม ${semester}`;
+                const confirmed = await showConfirm(`มีข้อมูล${semesterName} ปีการศึกษา ${academicYear} อยู่แล้ว ต้องการเขียนทับหรือไม่?`);
+                if (!confirmed) return;
+            }
+            
+            await withLoader(async () => {
+                await delay(800); // Simulate processing time
+                
+                studentsData[studentId][academicYear][semester] = {
+                    id: studentInfo.id,
+                    name: studentInfo.name,
+                    grade: studentInfo.grade,
+                    academicYear: academicYear,
+                    semester: semester,
+                    subjects: subjects
+                };
+                
+                showMessage('บันทึกผลการเรียนเรียบร้อยแล้ว', 'success');
+                
+                // Reset form
+                document.getElementById('gradesContainer').innerHTML = '';
+                document.getElementById('selectStudent').value = '';
+                
+                updateDashboard();
+                updateStudentsList();
+            }, 'กำลังบันทึกผลการเรียน...', `บันทึกข้อมูล ${subjects.length} วิชา`, 'progress');
+        }
+
+        // Delete basic student
+        async function deleteBasicStudent(studentId) {
+            const confirmed = await showConfirm('คุณต้องการลบข้อมูลนักเรียนรหัส ' + studentId + ' หรือไม่?');
+            if (confirmed) {
+                await withLoader(async () => {
+                    await delay(400); // Simulate processing time
+                    
+                    delete studentsData[studentId];
+                    updateManageStudentsList();
+                    updateStudentSelect();
+                    updateDashboard();
+                    updateStudentsList();
+                    showMessage('ลบข้อมูลเรียบร้อยแล้ว', 'success');
+                }, 'กำลังลบข้อมูล...', `ลบข้อมูลนักเรียนรหัส ${studentId}`, 'dots');
+            }
+        }
+
+        // Admin functions
+        function addSubjectRow() {
+            const container = document.getElementById('subjectsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'subject-row grid grid-cols-1 md:grid-cols-6 gap-4 mb-4';
+            newRow.innerHTML = `
+                <input type="text" placeholder="รหัสวิชา" class="subject-code px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="text" placeholder="ชื่อวิชา" class="subject-name px-3 py-2 border border-gray-300 rounded-lg">
+                <select class="subject-type px-3 py-2 border border-gray-300 rounded-lg">
+                    <option value="วิชาหลัก">วิชาหลัก</option>
+                    <option value="วิชาเลือก">วิชาเลือก</option>
+                    <option value="กิจกรรม">กิจกรรม</option>
+                </select>
+                <input type="number" placeholder="หน่วยกิต" class="subject-credit px-3 py-2 border border-gray-300 rounded-lg" min="1" max="6">
+                <input type="text" placeholder="คะแนน" class="subject-score px-3 py-2 border border-gray-300 rounded-lg">
+                <button type="button" onclick="removeSubjectRow(this)" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600">ลบ</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeSubjectRow(button) {
+            button.closest('.subject-row').remove();
+        }
+
+        async function addStudent(event) {
+            event.preventDefault();
+            
+            const studentId = document.getElementById('newStudentId').value.trim();
+            const studentName = document.getElementById('newStudentName').value.trim();
+            const studentGrade = document.getElementById('newStudentGrade').value.trim();
+            const academicYear = document.getElementById('newAcademicYear').value;
+            const semester = document.getElementById('newSemester').value;
+            
+            if (!studentId || !studentName || !studentGrade) {
+                showMessage('กรุณากรอกข้อมูลนักเรียนให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            const subjectRows = document.querySelectorAll('.subject-row');
+            const subjects = [];
+            
+            subjectRows.forEach(row => {
+                const code = row.querySelector('.subject-code').value.trim();
+                const name = row.querySelector('.subject-name').value.trim();
+                const type = row.querySelector('.subject-type').value;
+                const credit = row.querySelector('.subject-credit').value;
+                const score = row.querySelector('.subject-score').value.trim();
+                
+                if (code && name && credit && score) {
+                    subjects.push({
+                        code,
+                        name,
+                        type,
+                        credit: parseInt(credit),
+                        score,
+                        grade: calculateGrade(score)
+                    });
+                }
+            });
+            
+            if (subjects.length === 0) {
+                showMessage('กรุณาเพิ่มรายวิชาอย่างน้อย 1 วิชา', 'error');
+                return;
+            }
+            
+            // Initialize student data structure if not exists
+            if (!studentsData[studentId]) {
+                studentsData[studentId] = {};
+            }
+            if (!studentsData[studentId][academicYear]) {
+                studentsData[studentId][academicYear] = {};
+            }
+            
+            // Check if this semester already exists
+            if (studentsData[studentId][academicYear][semester]) {
+                const semesterName = semester === 'summer' ? 'ฤดูร้อน' : `เทอม ${semester}`;
+                const confirmed = await showConfirm(`มีข้อมูล${semesterName} ปีการศึกษา ${academicYear} อยู่แล้ว ต้องการเขียนทับหรือไม่?`);
+                if (!confirmed) {
+                    return;
+                }
+            }
+            
+            studentsData[studentId][academicYear][semester] = {
+                id: studentId,
+                name: studentName,
+                grade: studentGrade,
+                academicYear: academicYear,
+                semester: semester,
+                subjects: subjects
+            };
+            
+            showMessage('เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว', 'success');
+            
+            updateDashboard();
+            updateStudentsList();
+        }
+
+        function updateStudentsList() {
+            const tbody = document.getElementById('studentsListBody');
+            tbody.innerHTML = '';
+            
+            Object.keys(studentsData).forEach(studentId => {
+                const studentRecord = studentsData[studentId];
+                
+                // Get latest semester data for display
+                let latestData = null;
+                let latestYear = 0;
+                let latestSemester = 0;
+                
+                Object.keys(studentRecord).forEach(year => {
+                    Object.keys(studentRecord[year]).forEach(semester => {
+                        const yearNum = parseInt(year);
+                        const semesterNum = semester === 'summer' ? 3 : parseInt(semester);
+                        
+                        if (yearNum > latestYear || (yearNum === latestYear && semesterNum > latestSemester)) {
+                            latestYear = yearNum;
+                            latestSemester = semesterNum;
+                            latestData = studentRecord[year][semester];
+                        }
+                    });
+                });
+                
+                if (latestData) {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    const gpa = calculateGPA(latestData.subjects);
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${latestData.id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900" title="${latestData.name}">${latestData.name}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${latestData.grade}</td>
+                        <td class="px-6 py-4 text-sm text-center font-semibold text-gray-900">${gpa}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="editStudentGrades('${latestData.id}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors mr-2">
+                                แก้ไข
+                            </button>
+                            <button onclick="deleteStudent('${latestData.id}')" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                                ลบ
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        async function deleteStudent(studentId) {
+            const confirmed = await showConfirm('คุณต้องการลบข้อมูลนักเรียนรหัส ' + studentId + ' หรือไม่?');
+            if (confirmed) {
+                delete studentsData[studentId];
+                updateDashboard();
+                updateStudentsList();
+                showMessage('ลบข้อมูลเรียบร้อยแล้ว', 'success');
+            }
+        }
+
+        async function downloadTemplate() {
+            await withLoader(async () => {
+                await delay(800); // Simulate file generation time
+            // Create Excel workbook data
+            const worksheetData = [];
+            
+            // Create header row - แยกคอลัมน์แต่ละอย่างชัดเจน
+            const headerRow = ["รหัสประจำตัว", "ชื่อ-นามสกุล", "ระดับชั้น", "ปีการศึกษา", "เทอม"];
+            
+            // Add global subjects - แต่ละวิชาเป็นคอลัมน์แยก (เฉพาะคะแนน)
+            globalSubjects.forEach(subject => {
+                headerRow.push(`${subject.code} (${subject.name})`);
+            });
+            
+            // Add custom subjects columns - แยกคอลัมน์แต่ละฟิลด์
+            for (let i = 1; i <= 3; i++) {
+                headerRow.push(`วิชาเพิ่มเติม${i}_รหัส`);
+                headerRow.push(`วิชาเพิ่มเติม${i}_ชื่อ`);
+                headerRow.push(`วิชาเพิ่มเติม${i}_ประเภท`);
+                headerRow.push(`วิชาเพิ่มเติม${i}_หน่วยกิต`);
+                headerRow.push(`วิชาเพิ่มเติม${i}_คะแนน`);
+            }
+            
+            worksheetData.push(headerRow);
+            
+            // Add example data row 1
+            const exampleRow1 = ["65003", "นางสาวตัวอย่าง ตัวอย่าง", "ม.6/1", "2567", "1"];
+            
+            // Add scores for global subjects (แต่ละวิชาคอลัมน์แยก)
+            globalSubjects.forEach((subject, index) => {
+                if (index === 0) exampleRow1.push("85"); // ภาษาไทย
+                else if (index === 1) exampleRow1.push("78"); // ภาษาอังกฤษ
+                else if (index === 2) exampleRow1.push("92"); // คณิตศาสตร์
+                else if (index === 3) exampleRow1.push("ร"); // วิทยาศาสตร์ (ไม่ผ่าน)
+                else if (index === 4) exampleRow1.push("75"); // สังคมศึกษา
+                else if (index === 5) exampleRow1.push("88"); // พลศึกษา
+                else exampleRow1.push(""); // วิชาอื่นๆ ที่ไม่ได้เรียน
+            });
+            
+            // Add custom subjects - วิชาเพิ่มเติม 1
+            exampleRow1.push("ART601"); // รหัส
+            exampleRow1.push("ศิลปะ"); // ชื่อ
+            exampleRow1.push("วิชาเลือก"); // ประเภท
+            exampleRow1.push("2"); // หน่วยกิต
+            exampleRow1.push("82"); // คะแนน
+            
+            // วิชาเพิ่มเติม 2
+            exampleRow1.push("MU601"); // รหัส
+            exampleRow1.push("ดนตรี"); // ชื่อ
+            exampleRow1.push("วิชาเลือก"); // ประเภท
+            exampleRow1.push("1"); // หน่วยกิต
+            exampleRow1.push("มส."); // คะแนน (ขาดสอบ)
+            
+            // วิชาเพิ่มเติม 3 (ว่าง)
+            exampleRow1.push("", "", "", "", "");
+            
+            worksheetData.push(exampleRow1);
+            
+            // Add example data row 2
+            const exampleRow2 = ["65004", "นายตัวอย่าง ตัวอย่าง", "ม.6/2", "2567", "1"];
+            
+            // Add scores for global subjects
+            globalSubjects.forEach((subject, index) => {
+                if (index === 0) exampleRow2.push("90"); // ภาษาไทย
+                else if (index === 1) exampleRow2.push("85"); // ภาษาอังกฤษ
+                else if (index === 2) exampleRow2.push("88"); // คณิตศาสตร์
+                else if (index === 3) exampleRow2.push("79"); // วิทยาศาสตร์
+                else if (index === 4) exampleRow2.push(""); // สังคมศึกษา (ไม่เรียน)
+                else if (index === 5) exampleRow2.push("95"); // พลศึกษา
+                else exampleRow2.push(""); // วิชาอื่นๆ
+            });
+            
+            // Custom subjects for row 2 - เฉพาะวิชาเพิ่มเติม 1
+            exampleRow2.push("CS601"); // รหัส
+            exampleRow2.push("คอมพิวเตอร์"); // ชื่อ
+            exampleRow2.push("วิชาเลือก"); // ประเภท
+            exampleRow2.push("3"); // หน่วยกิต
+            exampleRow2.push("94"); // คะแนน
+            
+            // วิชาเพิ่มเติม 2 และ 3 ว่าง
+            exampleRow2.push("", "", "", "", ""); // วิชาเพิ่มเติม 2
+            exampleRow2.push("", "", "", "", ""); // วิชาเพิ่มเติม 3
+            
+            worksheetData.push(exampleRow2);
+            
+            // Add example data row 3 - นักเรียนที่เรียนเฉพาะวิชาหลัก
+            const exampleRow3 = ["65005", "นางสาวตัวอย่าง2 ตัวอย่าง2", "ม.6/1", "2567", "2"];
+            
+            globalSubjects.forEach((subject, index) => {
+                if (index === 0) exampleRow3.push("87"); // ภาษาไทย
+                else if (index === 1) exampleRow3.push("83"); // ภาษาอังกฤษ
+                else if (index === 2) exampleRow3.push("91"); // คณิตศาสตร์
+                else if (index === 3) exampleRow3.push("86"); // วิทยาศาสตร์
+                else if (index === 4) exampleRow3.push("80"); // สังคมศึกษา
+                else if (index === 5) exampleRow3.push(""); // พลศึกษา (ไม่เรียน)
+                else exampleRow3.push(""); // วิชาอื่นๆ
+            });
+            
+            // ไม่มีวิชาเพิ่มเติม
+            exampleRow3.push("", "", "", "", ""); // วิชาเพิ่มเติม 1
+            exampleRow3.push("", "", "", "", ""); // วิชาเพิ่มเติม 2
+            exampleRow3.push("", "", "", "", ""); // วิชาเพิ่มเติม 3
+            
+            worksheetData.push(exampleRow3);
+            
+            // Convert to Excel format with proper tab separation
+            let excelContent = '';
+            worksheetData.forEach(row => {
+                // แต่ละคอลัมน์แยกด้วย tab (\t) เพื่อให้ Excel แยกคอลัมน์ได้ถูกต้อง
+                excelContent += row.join('\t') + '\n';
+            });
+            
+            // Create Excel file with proper encoding
+            const blob = new Blob(['\ufeff' + excelContent], { 
+                type: 'application/vnd.ms-excel;charset=utf-8;' 
+            });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'template_student_grades.xls';
+            link.click();
+            
+                showMessage('ดาวน์โหลดเทมเพลต Excel เรียบร้อย (แยกคอลัมน์แต่ละอย่าง)', 'success');
+            }, 'กำลังสร้างไฟล์...', 'กำลังเตรียมเทมเพลต Excel', 'progress');
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const fileName = file.name.toLowerCase();
+            const isCSV = fileName.endsWith('.csv');
+            const isExcel = fileName.endsWith('.xls') || fileName.endsWith('.xlsx');
+            
+            if (!isCSV && !isExcel) {
+                showMessage('กรุณาเลือกไฟล์ CSV หรือ Excel เท่านั้น', 'error');
+                event.target.value = '';
+                return;
+            }
+            
+            await withLoader(async () => {
+                await delay(500); // Initial delay
+                
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                try {
+                    let content = e.target.result;
+                    let lines;
+                    
+                    if (isExcel) {
+                        // For Excel files, split by both \n and \r\n, then split each line by \t
+                        lines = content.split(/\r?\n/).map(line => line.split('\t'));
+                        // Convert back to CSV format for processing
+                        lines = lines.map(row => row.join(','));
+                    } else {
+                        // CSV file
+                        lines = content.split('\n');
+                    }
+                    
+                    if (lines.length < 2) {
+                        showMessage('ไฟล์ CSV ไม่มีข้อมูล', 'error');
+                        return;
+                    }
+                    
+                    const headers = lines[0].split(',');
+                    let processedStudents = {};
+                    let successCount = 0;
+                    let errorCount = 0;
+                    
+                    // Find basic info columns
+                    const basicColumns = ['รหัสประจำตัว', 'ชื่อ-นามสกุล', 'ระดับชั้น', 'ปีการศึกษา', 'เทอม'];
+                    const basicIndexes = basicColumns.map(col => headers.indexOf(col));
+                    
+                    // Find global subject columns
+                    const globalSubjectIndexes = {};
+                    globalSubjects.forEach(subject => {
+                        const colName = `${subject.code}_${subject.name}`;
+                        const index = headers.indexOf(colName);
+                        if (index !== -1) {
+                            globalSubjectIndexes[subject.code] = index;
+                        }
+                    });
+                    
+                    // Find custom subject columns (pattern: วิชาเพิ่มเติม*_รหัส, วิชาเพิ่มเติม*_ชื่อ, etc.)
+                    const customSubjectGroups = {};
+                    headers.forEach((header, index) => {
+                        const match = header.match(/^วิชาเพิ่มเติม(\d+)_(.+)$/);
+                        if (match) {
+                            const groupNum = match[1];
+                            const field = match[2];
+                            if (!customSubjectGroups[groupNum]) {
+                                customSubjectGroups[groupNum] = {};
+                            }
+                            customSubjectGroups[groupNum][field] = index;
+                        }
+                    });
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        const values = line.split(',');
+                        
+                        // Extract basic info
+                        const [studentId, name, grade, academicYear, semester] = basicIndexes.map(idx => 
+                            idx !== -1 ? values[idx]?.trim() : ''
+                        );
+                        
+                        if (!studentId || !name || !grade || !academicYear || !semester) {
+                            errorCount++;
+                            continue;
+                        }
+                        
+                        // Initialize student structure
+                        const studentKey = `${studentId}_${academicYear}_${semester}`;
+                        if (!processedStudents[studentKey]) {
+                            processedStudents[studentKey] = {
+                                studentId,
+                                data: {
+                                    id: studentId,
+                                    name: name,
+                                    grade: grade,
+                                    academicYear: academicYear,
+                                    semester: semester,
+                                    subjects: []
+                                }
+                            };
+                        }
+                        
+                        const studentData = processedStudents[studentKey].data;
+                        
+                        // Process global subjects
+                        Object.keys(globalSubjectIndexes).forEach(subjectCode => {
+                            const scoreIndex = globalSubjectIndexes[subjectCode];
+                            const score = values[scoreIndex]?.trim();
+                            
+                            if (score && score !== '') {
+                                const subject = globalSubjects.find(s => s.code === subjectCode);
+                                if (subject) {
+                                    studentData.subjects.push({
+                                        code: subject.code,
+                                        name: subject.name,
+                                        type: subject.type,
+                                        credit: subject.credit,
+                                        score: score,
+                                        grade: calculateGrade(score)
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // Process custom subjects
+                        Object.keys(customSubjectGroups).forEach(groupNum => {
+                            const group = customSubjectGroups[groupNum];
+                            const code = values[group['รหัส']]?.trim();
+                            const name = values[group['ชื่อ']]?.trim();
+                            const type = values[group['ประเภท']]?.trim();
+                            const credit = values[group['หน่วยกิต']]?.trim();
+                            const score = values[group['คะแนน']]?.trim();
+                            
+                            if (code && name && type && credit && score) {
+                                studentData.subjects.push({
+                                    code: code,
+                                    name: name,
+                                    type: type,
+                                    credit: parseInt(credit) || 1,
+                                    score: score,
+                                    grade: calculateGrade(score)
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Add to main data structure
+                    Object.values(processedStudents).forEach(student => {
+                        const { studentId, data } = student;
+                        const { academicYear, semester } = data;
+                        
+                        if (!studentsData[studentId]) {
+                            studentsData[studentId] = {};
+                        }
+                        if (!studentsData[studentId][academicYear]) {
+                            studentsData[studentId][academicYear] = {};
+                        }
+                        
+                        studentsData[studentId][academicYear][semester] = data;
+                        successCount++;
+                    });
+                    
+                    const statusDiv = document.getElementById('uploadStatus');
+                    statusDiv.className = 'mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg';
+                    statusDiv.innerHTML = `✅ อัพโหลดสำเร็จ! เพิ่มข้อมูลนักเรียน ${Object.keys(processedStudents).length} รายการ${errorCount > 0 ? ` (ข้อมูลผิดพลาด ${errorCount} แถว)` : ''}`;
+                    statusDiv.classList.remove('hidden');
+                    
+                    showMessage(`อัพโหลดสำเร็จ ${Object.keys(processedStudents).length} รายการ`, 'success');
+                    
+                    updateDashboard();
+                    updateStudentsList();
+                    updateManageStudentsList();
+                    updateStudentSelect();
+                    
+                        // Reset file input
+                        event.target.value = '';
+                        resolve();
+                        
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        reject(new Error('เกิดข้อผิดพลาดในการอ่านไฟล์'));
+                        event.target.value = '';
+                    }
+                };
+                
+                reader.readAsText(file, 'UTF-8');
+            });
+            
+            }, 'กำลังอัพโหลดไฟล์...', `ประมวลผลไฟล์ ${file.name}`, 'progress');
+        }
+
+        // Global subjects management functions
+        async function addGlobalSubject(event) {
+            event.preventDefault();
+            
+            const code = document.getElementById('globalSubjectCode').value.trim();
+            const name = document.getElementById('globalSubjectName').value.trim();
+            const type = document.getElementById('globalSubjectType').value;
+            const credit = parseInt(document.getElementById('globalSubjectCredit').value);
+            
+            // Check if subject code already exists
+            if (globalSubjects.find(s => s.code === code)) {
+                showMessage('รหัสวิชานี้มีอยู่แล้ว', 'error');
+                return;
+            }
+            
+            await withLoader(async () => {
+                await delay(300); // Simulate processing time
+                
+                globalSubjects.push({ code, name, type, credit });
+                updateGlobalSubjectsList();
+                
+                // Clear form
+                document.getElementById('globalSubjectCode').value = '';
+                document.getElementById('globalSubjectName').value = '';
+                document.getElementById('globalSubjectCredit').value = '';
+                
+                showMessage('เพิ่มรายวิชาทั่วไปเรียบร้อย', 'success');
+            }, 'กำลังเพิ่มรายวิชา...', `เพิ่มวิชา ${name}`, 'pulse');
+        }
+        
+        function updateGlobalSubjectsList() {
+            const tbody = document.getElementById('globalSubjectsListBody');
+            tbody.innerHTML = '';
+            
+            globalSubjects.forEach((subject, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${subject.code}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${subject.name}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${subject.type}</td>
+                    <td class="px-4 py-3 text-sm text-center text-gray-900">${subject.credit}</td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick="editGlobalSubject(${index})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors mr-1">
+                            แก้ไข
+                        </button>
+                        <button onclick="deleteGlobalSubject(${index})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors">
+                            ลบ
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        async function deleteGlobalSubject(index) {
+            const subject = globalSubjects[index];
+            const confirmed = await showConfirm(`คุณต้องการลบวิชา ${subject.code} - ${subject.name} หรือไม่?`);
+            if (confirmed) {
+                globalSubjects.splice(index, 1);
+                updateGlobalSubjectsList();
+                showMessage('ลบรายวิชาเรียบร้อย', 'success');
+            }
+        }
+        
+        function editGlobalSubject(index) {
+            const subject = globalSubjects[index];
+            document.getElementById('globalSubjectCode').value = subject.code;
+            document.getElementById('globalSubjectName').value = subject.name;
+            document.getElementById('globalSubjectType').value = subject.type;
+            document.getElementById('globalSubjectCredit').value = subject.credit;
+            
+            // Remove the old subject and let user re-add
+            globalSubjects.splice(index, 1);
+            updateGlobalSubjectsList();
+        }
+        
+        function loadGlobalSubjects() {
+            const container = document.getElementById('gradesContainer');
+            container.innerHTML = '';
+            
+            globalSubjects.forEach(subject => {
+                addSubjectToGrades(subject);
+            });
+            
+            showMessage('โหลดรายวิชาทั่วไปเรียบร้อย', 'success');
+        }
+        
+        // Edit basic student function
+        function editBasicStudent(studentId) {
+            const studentRecord = studentsData[studentId];
+            let studentInfo = null;
+            
+            if (studentRecord.basicInfo) {
+                studentInfo = studentRecord.basicInfo;
+            } else {
+                Object.values(studentRecord).forEach(yearData => {
+                    Object.values(yearData).forEach(semesterData => {
+                        if (!studentInfo) studentInfo = semesterData;
+                    });
+                });
+            }
+            
+            if (studentInfo) {
+                // Fill the form with current data
+                document.getElementById('newStudentId').value = studentInfo.id;
+                document.getElementById('newStudentName').value = studentInfo.name;
+                document.getElementById('newStudentGrade').value = studentInfo.grade;
+                
+                // Remove the student temporarily for editing
+                delete studentsData[studentId];
+                updateManageStudentsList();
+                updateStudentSelect();
+                
+                showMessage('กรอกข้อมูลใหม่แล้วกดเพิ่มนักเรียน', 'info');
+            }
+        }
+        
+        // Edit student grades function
+        function editStudentGrades(studentId) {
+            const studentRecord = studentsData[studentId];
+            if (!studentRecord) {
+                showMessage('ไม่พบข้อมูลนักเรียน', 'error');
+                return;
+            }
+            
+            // Show modal for selecting which semester to edit
+            showEditGradesModal(studentId, studentRecord);
+        }
+        
+        function showEditGradesModal(studentId, studentRecord) {
+            // Create modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+            backdrop.id = 'editGradesModal';
+            
+            // Get available semesters
+            const semesters = [];
+            Object.keys(studentRecord).forEach(year => {
+                if (year !== 'basicInfo') {
+                    Object.keys(studentRecord[year]).forEach(semester => {
+                        const semesterData = studentRecord[year][semester];
+                        semesters.push({
+                            year: year,
+                            semester: semester,
+                            data: semesterData,
+                            displayName: `ปีการศึกษา ${year} ${semester === 'summer' ? 'ฤดูร้อน' : `เทอม ${semester}`}`
+                        });
+                    });
+                }
+            });
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'bg-white rounded-lg p-6 max-w-2xl mx-4 shadow-xl max-h-96 overflow-y-auto';
+            
+            let modalContent = `
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">แก้ไขผลการเรียน</h3>
+                    <p class="text-gray-600">เลือกเทอมที่ต้องการแก้ไข</p>
+                </div>
+                <div class="space-y-3 mb-6">
+            `;
+            
+            semesters.forEach((sem, index) => {
+                const gpa = calculateGPA(sem.data.subjects);
+                modalContent += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="startEditingSemester('${studentId}', '${sem.year}', '${sem.semester}')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-medium text-gray-800">${sem.displayName}</h4>
+                                <p class="text-sm text-gray-600">${sem.data.subjects.length} วิชา</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">เกรดเฉลี่ย</p>
+                                <p class="text-lg font-bold text-blue-600">${gpa}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            modalContent += `
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="closeEditGradesModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">ปิด</button>
+                </div>
+            `;
+            
+            modal.innerHTML = modalContent;
+            backdrop.appendChild(modal);
+            document.body.appendChild(backdrop);
+        }
+        
+        function closeEditGradesModal() {
+            const modal = document.getElementById('editGradesModal');
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        }
+        
+        function startEditingSemester(studentId, year, semester) {
+            closeEditGradesModal();
+            
+            const semesterData = studentsData[studentId][year][semester];
+            
+            // Switch to manage tab and subjects tab
+            showAdminContent('manage');
+            showManageTab('subjects');
+            
+            // Fill the form with existing data
+            document.getElementById('selectStudent').value = studentId;
+            document.getElementById('gradeAcademicYear').value = year;
+            document.getElementById('gradeSemester').value = semester;
+            
+            // Clear and populate subjects
+            const container = document.getElementById('gradesContainer');
+            container.innerHTML = '';
+            
+            semesterData.subjects.forEach(subject => {
+                const subjectDiv = document.createElement('div');
+                subjectDiv.className = 'grade-subject-row grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 p-4 border border-gray-200 rounded-lg';
+                
+                subjectDiv.innerHTML = `
+                    <input type="text" placeholder="รหัสวิชา" value="${subject.code}" class="subject-code px-3 py-2 border border-gray-300 rounded-lg">
+                    <input type="text" placeholder="ชื่อวิชา" value="${subject.name}" class="subject-name px-3 py-2 border border-gray-300 rounded-lg">
+                    <select class="subject-type px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="วิชาหลัก" ${subject.type === 'วิชาหลัก' ? 'selected' : ''}>วิชาหลัก</option>
+                        <option value="วิชาเลือก" ${subject.type === 'วิชาเลือก' ? 'selected' : ''}>วิชาเลือก</option>
+                        <option value="กิจกรรม" ${subject.type === 'กิจกรรม' ? 'selected' : ''}>กิจกรรม</option>
+                    </select>
+                    <input type="number" placeholder="หน่วยกิต" value="${subject.credit}" class="subject-credit px-3 py-2 border border-gray-300 rounded-lg" min="1" max="6">
+                    <input type="text" placeholder="คะแนน" value="${subject.score}" class="subject-score px-3 py-2 border border-gray-300 rounded-lg">
+                    <button type="button" onclick="removeGradeSubject(this)" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600">ลบ</button>
+                `;
+                
+                container.appendChild(subjectDiv);
+            });
+            
+            showMessage('กรอกข้อมูลใหม่แล้วกดบันทึกผลการเรียน', 'info');
+            
+            // Scroll to the form
+            document.querySelector('#subjectsTabContent form').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            updateStudentsList();
+            updateGlobalSubjectsList();
+        });
+    </script>
+</body>
+</html>
